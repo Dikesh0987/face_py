@@ -4,7 +4,8 @@ import face_recognition
 import pickle
 import firebase_admin
 from firebase_admin import credentials
-from firebase_admin import storage
+from firebase_admin import db
+from firebase_admin import  storage
 
 cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred, {
@@ -12,7 +13,9 @@ firebase_admin.initialize_app(cred, {
     'storageBucket': "realtimefacedetection-42014.appspot.com"
 })
 
+
 folderImagesPath = 'Resoureces/Images'
+storagePath = 'Images'
 imagesPathList = os.listdir(folderImagesPath)
 
 # print(imagesPathList)
@@ -22,15 +25,15 @@ idList = []
 
 for path in imagesPathList:
     imgList.append(cv2.imread(os.path.join(folderImagesPath, path)))
-
-    # print(path)
-    # print(os.path.splitext(path)[0])
     idList.append(os.path.splitext(path)[0])
 
     fileName = f'{folderImagesPath}/{path}'
     bucket = storage.bucket()
     blob = bucket.blob(fileName)
     blob.upload_from_filename(fileName)
+
+    # print(path)
+    # print(os.path.splitext(path)[0])
 
 print(idList)
 
