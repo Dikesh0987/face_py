@@ -4,31 +4,31 @@ import cvzone
 import numpy as np
 import cv2
 import face_recognition
-import firebase_admin
-from firebase_admin import credentials
-from firebase_admin import db
-from firebase_admin import  storage
-
-cred = credentials.Certificate("serviceAccountKey.json")
-firebase_admin.initialize_app(cred, {
-    'databaseURL': "https://realtimefacedetection-42014-default-rtdb.asia-southeast1.firebasedatabase.app/",
-    'storageBucket': "realtimefacedetection-42014.appspot.com"
-})
+# import firebase_admin
+# from firebase_admin import credentials
+# from firebase_admin import db
+# from firebase_admin import  storage
+#
+# cred = credentials.Certificate("serviceAccountKey.json")
+# firebase_admin.initialize_app(cred, {
+#     'databaseURL': "https://realtimefacedetection-42014-default-rtdb.asia-southeast1.firebasedatabase.app/",
+#     'storageBucket': "realtimefacedetection-42014.appspot.com"
+# })
 
 
 
 
 cap = cv2.VideoCapture(0)
 # camp = cv2.flip(1)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1024)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 768)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
 # Background Images
 imgBack = cv2.imread('Resoureces/BackGround/frame.jpg')
 
 # All Images with differents modes
 
-folderModePath = 'Resoureces/Modes'
+folderModePath = 'Resoureces/Status'
 modePathList = os.listdir(folderModePath)
 imgModeList = []
 
@@ -52,6 +52,9 @@ encodeListKnown,idList = encodeListKnownWithId
 
 print("Encode File Loaded")
 
+modeType = 0
+counter = 0
+
 while True:
     success, img = cap.read()
 
@@ -61,8 +64,8 @@ while True:
     faceCurFrame = face_recognition.face_locations(smallImg)
     encodefaceCurFrame = face_recognition.face_encodings(smallImg,faceCurFrame)
 
-    imgBack[50:50+480 , 45:45+640] = img
-    imgBack[100:100+200, 900:900+250] = imgModeList[0]
+    imgBack[30:30+480, 30:30+640] = img
+    imgBack[170:170+200, 730:730+250] = imgModeList[1]
 
     for encodeFace, faceLoc in zip(encodefaceCurFrame,faceCurFrame):
         match = face_recognition.compare_faces(encodeListKnown,encodeFace)
@@ -83,9 +86,9 @@ while True:
 
             imgBack = cvzone.cornerRect(imgBack, bbox, rt=0)
 
+
+
         else: print("Not Matched")
-
-
 
 
 
