@@ -12,8 +12,8 @@ ref = db.reference('students')
 data = {
     "123":
         {
-            "name": "Dikesh .",
-            "major": "Robotics & Physics",
+            "name": "Bhupu .",
+            "major": "Physics",
             "starting_year": 2017,
             "total_attendance": 7,
             "standing": "G",
@@ -23,7 +23,7 @@ data = {
     "231":
         {
             "name": "Dikesh",
-            "major": "Robotics & Physics",
+            "major": "Physics",
             "starting_year": 2017,
             "total_attendance": 7,
             "standing": "G",
@@ -32,7 +32,7 @@ data = {
         },
     "321":
         {
-            "name": "Dikesh",
+            "name": "Rupu",
             "major": "Robotics & Physics",
             "starting_year": 2017,
             "total_attendance": 7,
@@ -42,8 +42,8 @@ data = {
         },
     "132":
         {
-            "name": "Dikesh .",
-            "major": "Robotics & Physics",
+            "name": "Hipu .",
+            "major": "susu",
             "starting_year": 2017,
             "total_attendance": 7,
             "standing": "G",

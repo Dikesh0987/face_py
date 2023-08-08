@@ -1,21 +1,22 @@
 import os
 import pickle
-import cvzone
-import numpy as np
 import cv2
 import face_recognition
-# import firebase_admin
-# from firebase_admin import credentials
-# from firebase_admin import db
-# from firebase_admin import  storage
-#
-# cred = credentials.Certificate("serviceAccountKey.json")
-# firebase_admin.initialize_app(cred, {
-#     'databaseURL': "https://realtimefacedetection-42014-default-rtdb.asia-southeast1.firebasedatabase.app/",
-#     'storageBucket': "realtimefacedetection-42014.appspot.com"
-# })
+import cvzone
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import db
+from firebase_admin import storage
+import numpy as np
+from datetime import datetime
 
+cred = credentials.Certificate("serviceAccountKey.json")
+firebase_admin.initialize_app(cred, {
+    'databaseURL': "https://realtimefacedetection-42014-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    'storageBucket': "realtimefacedetection-42014.appspot.com"
+})
 
+bucket = storage.bucket()
 
 
 cap = cv2.VideoCapture(0)
@@ -54,6 +55,8 @@ print("Encode File Loaded")
 
 modeType = 0
 counter = 0
+sId = -1
+idImg = []
 
 while True:
     success, img = cap.read()
@@ -65,32 +68,72 @@ while True:
     encodefaceCurFrame = face_recognition.face_encodings(smallImg,faceCurFrame)
 
     imgBack[30:30+480, 30:30+640] = img
-    imgBack[170:170+200, 730:730+250] = imgModeList[1]
+    imgBack[170:170+200, 730:730+250] = imgModeList[modeType]
 
-    for encodeFace, faceLoc in zip(encodefaceCurFrame,faceCurFrame):
-        match = face_recognition.compare_faces(encodeListKnown,encodeFace)
-        faceDis = face_recognition.face_distance(encodeListKnown,encodeFace)
+    if faceCurFrame:
+        for encodeFace, faceLoc in zip(encodefaceCurFrame, faceCurFrame):
+            match = face_recognition.compare_faces(encodeListKnown, encodeFace)
+            faceDis = face_recognition.face_distance(encodeListKnown, encodeFace)
 
-        # print("match", match)
-        # print("Dis", faceDis)
+            # print("match", match)
+            # print("Dis", faceDis)
 
-        matchIndex = np.argmin(faceDis)
+            matchIndex = np.argmin(faceDis)
 
-        if match[matchIndex]:
-            print("Matched Succesfully")
-            print(idList[matchIndex])
-            y1, x2, y2, x1 = faceLoc
-            y1, x2, y2, x1 = y1 * 4, x2 * 4, y2 * 4, x1 * 4
+            if match[matchIndex]:
+                print("Matched Succesfully")
+                # print(idList[matchIndex])
+                y1, x2, y2, x1 = faceLoc
+                y1, x2, y2, x1 = y1 * 4, x2 * 4, y2 * 4, x1 * 4
+                bbox = 50 + x1, 45 + y1, x2 - x1, y2 - y1
+                imgBack = cvzone.cornerRect(imgBack, bbox, rt=0)
 
-            bbox = 50 + x1, 45 + y1, x2-x1, y2-y1
+                sId = idList[matchIndex]
+                # print(sId)
 
-            imgBack = cvzone.cornerRect(imgBack, bbox, rt=0)
+                if counter == 0:
+                    counter = 1
+                    modeType = 1
 
+        if counter != 0:
 
+            if counter == 1:
+                getIdInfo = db.reference(f'students/{sId}').get()
 
-        else: print("Not Matched")
+                ref = db.reference(f'students/{sId}')
 
+                last_attendance_time_str = getIdInfo['last_attendance_time']
+                datetimeObject = datetime.strptime(last_attendance_time_str,"%Y-%m-%d %H:%M:%S")
+                secondsElapsed = (datetime.now() - datetimeObject).total_seconds()
 
+                if secondsElapsed > 30:
+                    ref = db.reference(f'students/{sId}')
+                    getIdInfo['total_attendance'] += 1
+                    ref.child('total_attendance').set(getIdInfo['total_attendance'])
+                    ref.child('last_attendance_time').set(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                else:
+                    modeType = 3
+                    counter = 0
+
+            if 10 < counter < 20:
+                modeType = 2
+
+            if counter <= 10:
+                cv2.putText(imgBack, str(getIdInfo['name']), (720, 100), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 1)
+                cv2.putText(imgBack, str(getIdInfo['major']), (720, 130), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 0, 0), 1)
+
+            counter += 1
+
+            if counter >= 20:
+                counter = 0
+                modeType = 0
+                getIdInfo = []
+                idImg = []
+
+    else:
+        modeType = 0
+        counter = 0
+        print("Not Matched")
 
     # cv2.imshow("WebCam", img)
     cv2.imshow("Face Recoginition", imgBack)
