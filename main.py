@@ -10,6 +10,8 @@ from firebase_admin import storage
 import numpy as np
 from datetime import datetime
 
+
+# for firebase databsae connection..
 cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred, {
     'databaseURL': "https://realtimefacedetection-42014-default-rtdb.asia-southeast1.firebasedatabase.app/",
@@ -18,9 +20,8 @@ firebase_admin.initialize_app(cred, {
 
 bucket = storage.bucket()
 
-
+# for video camera using cv2
 cap = cv2.VideoCapture(0)
-# camp = cv2.flip(1)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
@@ -75,8 +76,6 @@ while True:
             match = face_recognition.compare_faces(encodeListKnown, encodeFace)
             faceDis = face_recognition.face_distance(encodeListKnown, encodeFace)
 
-            # print("match", match)
-            # print("Dis", faceDis)
 
             matchIndex = np.argmin(faceDis)
 
